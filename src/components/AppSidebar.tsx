@@ -123,7 +123,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <div className="px-4 py-2 text-xs text-muted-foreground">
-          <p>© 2025 Team Manager</p>
+          <p>© 2025 DPGE - Team Manager</p>
         </div>
       </SidebarFooter>
     </Sidebar>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -18,7 +17,7 @@ const LandingPage = () => {
             className="max-w-lg space-y-6 animate-fade-in"
           >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold">
-              Team Manager
+              DPGE - Team Manager
             </h1>
             <p className="text-xl md:text-2xl opacity-90">
               Gerencie suas equipes e tarefas com eficiência e simplicidade
@@ -52,7 +51,7 @@ const LandingPage = () => {
         {/* Features Section */}
         <div className="w-full md:w-1/2 bg-white p-8 flex items-center">
           <div className="max-w-lg mx-auto space-y-8">
-            <h2 className="text-3xl font-bold text-gray-800">Por que usar o Team Manager?</h2>
+            <h2 className="text-3xl font-bold text-gray-800">Por que usar o DPGE - Team Manager?</h2>
             
             <div className="space-y-6">
               <div className="flex items-start gap-4">
@@ -67,7 +66,7 @@ const LandingPage = () => {
               
               <div className="flex items-start gap-4">
                 <div className="bg-gradient-to-r from-team-blue to-team-green rounded-lg p-3 text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 1 0 7.75" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-700">Colabore com Equipes</h3>
@@ -105,7 +104,7 @@ const LandingPage = () => {
       {/* Footer */}
       <footer className="bg-gray-100 py-6 px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-600 mb-4 md:mb-0">© 2025 Team Manager. Todos os direitos reservados.</p>
+          <p className="text-gray-600 mb-4 md:mb-0">© 2025 DPGE - Team Manager. Todos os direitos reservados.</p>
           <div className="flex gap-6">
             <a href="#" className="text-gray-600 hover:text-team-blue">Termos de Uso</a>
             <a href="#" className="text-gray-600 hover:text-team-blue">Privacidade</a>
