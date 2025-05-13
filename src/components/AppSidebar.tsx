@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   Sidebar,
@@ -25,22 +25,19 @@ import {
 
 export function AppSidebar() {
   const { currentUser, teams } = useTeam();
-  const [expanded, setExpanded] = useState(true);
 
   return (
-    <Sidebar expanded={expanded} onExpandedChange={setExpanded}>
+    <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2">
           <Avatar>
             <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
             <AvatarFallback>{currentUser.name.substring(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          {expanded && (
-            <div>
-              <p className="text-sm font-medium">{currentUser.name}</p>
-              <p className="text-xs text-muted-foreground capitalize">{currentUser.role}</p>
-            </div>
-          )}
+          <div>
+            <p className="text-sm font-medium">{currentUser.name}</p>
+            <p className="text-xs text-muted-foreground capitalize">{currentUser.role}</p>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -126,7 +123,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <div className="px-4 py-2 text-xs text-muted-foreground">
-          {expanded && <p>© 2025 Team Manager</p>}
+          <p>© 2025 Team Manager</p>
         </div>
       </SidebarFooter>
     </Sidebar>

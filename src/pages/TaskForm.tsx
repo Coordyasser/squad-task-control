@@ -62,11 +62,17 @@ const TaskForm = () => {
   const onSubmit = (data: TaskFormValues) => {
     // Convert date string to Date object if present
     const dueDate = data.dueDate ? new Date(data.dueDate) : undefined;
-
+    
+    // Ensure all required fields are included
     addTask({
-      ...data,
-      dueDate,
+      title: data.title,
+      description: data.description,
+      assigneeId: data.assigneeId,
+      status: data.status,
+      priority: data.priority,
+      teamId: data.teamId,
       createdBy: currentUser.id,
+      dueDate,
     });
 
     toast({
