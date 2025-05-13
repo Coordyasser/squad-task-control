@@ -12,6 +12,9 @@ import TaskForm from "./pages/TaskForm";
 import ProfilePage from "./pages/ProfilePage";
 import TeamsPage from "./pages/TeamsPage";
 import NotFound from "./pages/NotFound";
+import LandingPage from "./pages/LandingPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 const queryClient = new QueryClient();
 
@@ -23,8 +26,14 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            
+            {/* Protected Routes */}
             <Route element={<AppLayout />}>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/tasks" element={<KanbanBoard />} />
               <Route path="/tasks/new" element={<TaskForm />} />
               <Route path="/profile" element={<ProfilePage />} />
