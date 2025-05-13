@@ -1,9 +1,16 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { TeamProvider } from "./contexts/TeamContext";
+import AppLayout from "./components/AppLayout";
+import Dashboard from "./pages/Dashboard";
+import KanbanBoard from "./pages/KanbanBoard";
+import TaskForm from "./pages/TaskForm";
+import ProfilePage from "./pages/ProfilePage";
+import TeamsPage from "./pages/TeamsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -11,15 +18,23 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <TeamProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/tasks" element={<KanbanBoard />} />
+              <Route path="/tasks/new" element={<TaskForm />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/teams" element={<TeamsPage />} />
+              <Route path="/teams/:teamId" element={<TeamsPage />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TeamProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
