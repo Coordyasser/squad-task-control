@@ -166,7 +166,7 @@ const TaskForm = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Sem equipe (tarefa pessoal)</SelectItem>
+                      <SelectItem value="no-team">Sem equipe (tarefa pessoal)</SelectItem>
                       {teams.map((team) => (
                         <SelectItem key={team.id} value={team.id}>
                           {team.name}

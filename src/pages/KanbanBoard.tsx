@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -123,14 +124,14 @@ const KanbanBoard = () => {
           <div className="w-48">
             <label className="text-sm font-medium mb-1 block">Filtrar por Usuário</label>
             <Select
-              value={filter || ''}
-              onValueChange={(value) => setFilter(value === '' ? null : value)}
+              value={filter || 'all-users'}
+              onValueChange={(value) => setFilter(value === 'all-users' ? null : value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione um usuário" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os Usuários</SelectItem>
+                <SelectItem value="all-users">Todos os Usuários</SelectItem>
                 {users.map(user => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.name}
@@ -144,14 +145,14 @@ const KanbanBoard = () => {
         <div className="w-48">
           <label className="text-sm font-medium mb-1 block">Filtrar por Equipe</label>
           <Select
-            value={teamFilter || ''}
-            onValueChange={(value) => setTeamFilter(value === '' ? null : value)}
+            value={teamFilter || 'all-teams'}
+            onValueChange={(value) => setTeamFilter(value === 'all-teams' ? null : value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione uma equipe" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as Equipes</SelectItem>
+              <SelectItem value="all-teams">Todas as Equipes</SelectItem>
               {teams.map(team => (
                 <SelectItem key={team.id} value={team.id}>
                   {team.name}
