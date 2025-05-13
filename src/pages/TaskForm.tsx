@@ -3,45 +3,14 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useTeam, TaskStatus, TaskPriority } from '@/contexts/TeamContext';
+import { Form } from "@/components/ui/form";
+import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/hooks/use-toast';
-
-const taskSchema = z.object({
-  title: z.string().min(3, {
-    message: "Título deve ter pelo menos 3 caracteres",
-  }),
-  description: z.string().min(10, {
-    message: "Descrição deve ter pelo menos 10 caracteres",
-  }),
-  assigneeId: z.string().min(1, {
-    message: "Selecione um usuário",
-  }),
-  teamId: z.string().optional(),
-  status: z.enum(['todo', 'in-progress', 'review', 'done']),
-  priority: z.enum(['low', 'medium', 'high']),
-  dueDate: z.string().optional(),
-});
-
-type TaskFormValues = z.infer<typeof taskSchema>;
+import { TaskFormValues, taskSchema } from '@/schemas/taskSchema';
+import { TaskTitleSection } from '@/components/task/TaskTitleSection';
+import { TaskAssignmentSection } from '@/components/task/TaskAssignmentSection';
+import { TaskDetailsSection } from '@/components/task/TaskDetailsSection';
+import { TaskActionButtons } from '@/components/task/TaskActionButtons';
 
 const TaskForm = () => {
   const { currentUser, users, teams, addTask } = useTeam();
@@ -89,176 +58,10 @@ const TaskForm = () => {
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Título</FormLabel>
-                <FormControl>
-                  <Input placeholder="Digite o título da tarefa" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Descrição</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Descreva a tarefa em detalhes" 
-                    className="min-h-32"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField
-              control={form.control}
-              name="assigneeId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Responsável</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um responsável" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {users.map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="teamId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Equipe (opcional)</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma equipe" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="no-team">Sem equipe (tarefa pessoal)</SelectItem>
-                      {teams.map((team) => (
-                        <SelectItem key={team.id} value={team.id}>
-                          {team.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="todo">A Fazer</SelectItem>
-                      <SelectItem value="in-progress">Em Progresso</SelectItem>
-                      <SelectItem value="review">Revisão</SelectItem>
-                      <SelectItem value="done">Concluído</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Prioridade</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a prioridade" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="low">Baixa</SelectItem>
-                      <SelectItem value="medium">Média</SelectItem>
-                      <SelectItem value="high">Alta</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data de Entrega (opcional)</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          
-          <div className="flex gap-4">
-            <Button type="submit">Criar Tarefa</Button>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => navigate('/tasks')}
-            >
-              Cancelar
-            </Button>
-          </div>
+          <TaskTitleSection control={form.control} />
+          <TaskAssignmentSection control={form.control} users={users} teams={teams} />
+          <TaskDetailsSection control={form.control} />
+          <TaskActionButtons isSubmitting={form.formState.isSubmitting} />
         </form>
       </Form>
     </div>
