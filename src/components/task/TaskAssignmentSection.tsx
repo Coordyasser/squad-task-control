@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TaskFormValues } from '@/schemas/taskSchema';
-import { Team, User } from '@/contexts/TeamContext';
+import { Team, User } from '@/types/team';
 
 interface TaskAssignmentSectionProps {
   control: Control<TaskFormValues>;
