@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { Task, Team, TaskStatus, User } from '../types/team';
+import { Task, Team, TaskStatus, TaskPriority, User } from '../types/team';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -98,6 +97,9 @@ export function useTeamActions() {
 
   const addTask = async (task: Omit<Task, 'id' | 'createdAt'>) => {
     try {
+      // Convert Date objects to ISO strings for Supabase
+      const dueDate = task.dueDate ? task.dueDate.toISOString() : null;
+      
       const { data, error } = await supabase
         .from('tasks')
         .insert({
@@ -108,7 +110,7 @@ export function useTeamActions() {
           status: task.status,
           priority: task.priority,
           created_by: task.createdBy,
-          due_date: task.dueDate
+          due_date: dueDate
         })
         .select()
         .single();
@@ -121,8 +123,8 @@ export function useTeamActions() {
         description: data.description,
         assigneeId: data.assignee_id,
         teamId: data.team_id,
-        status: data.status,
-        priority: data.priority,
+        status: data.status as TaskStatus,
+        priority: data.priority as TaskPriority,
         createdBy: data.created_by,
         createdAt: new Date(data.created_at),
         dueDate: data.due_date ? new Date(data.due_date) : undefined

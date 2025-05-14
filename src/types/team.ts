@@ -2,6 +2,7 @@
 // Type definitions for teams, users, and tasks
 export type TaskStatus = 'todo' | 'in-progress' | 'review' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
+export type UserRole = 'admin' | 'member';
 
 export interface Task {
   id: string;
@@ -20,7 +21,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'member';
+  role: UserRole;
   avatar: string;
 }
 

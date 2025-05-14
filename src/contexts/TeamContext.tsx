@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
-import { TeamContextType, User } from '../types/team';
+import { TeamContextType, User, UserRole } from '../types/team';
 import { useTeamActions } from '../hooks/useTeamActions';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -37,7 +37,7 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
               id: profile.id,
               name: profile.name,
               email: profile.email,
-              role: profile.role,
+              role: profile.role as UserRole,
               avatar: profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`
             });
           }
@@ -58,7 +58,7 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
               id: admin.id,
               name: admin.name,
               email: admin.email,
-              role: admin.role,
+              role: admin.role as UserRole,
               avatar: admin.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${admin.name}`
             });
             toast({
@@ -130,4 +130,4 @@ export const useTeam = () => {
 };
 
 // Re-export types
-export type { TaskStatus, TaskPriority, Task, User, Team, TeamContextType } from '../types/team';
+export type { TaskStatus, TaskPriority, Task, User, Team, TeamContextType, UserRole } from '../types/team';

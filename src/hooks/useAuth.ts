@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { UserRole } from '@/types/team';
 
 export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'member';
+  role: UserRole;
   avatar?: string;
 }
 
@@ -39,7 +40,7 @@ export function useAuth() {
               id: profile.id,
               name: profile.name,
               email: profile.email,
-              role: profile.role,
+              role: profile.role as UserRole,
               avatar: profile.avatar
             });
           }
@@ -69,7 +70,7 @@ export function useAuth() {
               id: profile.id,
               name: profile.name,
               email: profile.email,
-              role: profile.role,
+              role: profile.role as UserRole,
               avatar: profile.avatar
             });
           }
@@ -114,7 +115,7 @@ export function useAuth() {
             id: profile.id,
             name: profile.name,
             email: profile.email,
-            role: profile.role,
+            role: profile.role as UserRole,
             avatar: profile.avatar
           });
         }
