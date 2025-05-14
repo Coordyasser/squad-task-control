@@ -4,6 +4,7 @@ import { TeamContextType, User, UserRole } from '../types/team';
 import { useTeamActions } from '../hooks/useTeamActions';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Navigate } from 'react-router-dom';
 
 // Create the context
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
@@ -66,7 +67,8 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
               description: "Você está usando o app como administrador para demonstração.",
             });
           } else {
-            // If no admin users exist, show a warning
+            // If no admin users exist, set current user to null but don't block UI
+            setCurrentUser(null);
             toast({
               title: "Atenção",
               description: "Nenhum usuário administrador encontrado. Por favor, crie um usuário ou faça login.",
@@ -81,6 +83,7 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
           description: error.message,
           variant: "destructive"
         });
+        setCurrentUser(null);
       } finally {
         setIsLoading(false);
       }
@@ -94,11 +97,15 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
     return <div>Carregando...</div>;
   }
 
-  // Guard against missing current user
-  if (!currentUser) {
-    return <div>Usuário não encontrado. Por favor, faça login.</div>;
+  // Check if we're on a protected route that requires authentication
+  const isProtectedRoute = window.location.pathname.match(/^\/dashboard|^\/tasks|^\/profile|^\/teams/);
+  
+  // If no user and on a protected route, redirect to login
+  if (!currentUser && isProtectedRoute) {
+    return <Navigate to="/login" replace />;
   }
 
+  // Allow rendering even without a user for public routes like login, register, landing page
   return (
     <TeamContext.Provider
       value={{
