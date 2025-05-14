@@ -40,8 +40,9 @@ export interface TeamContextType {
   tasks: Task[];
   selectedTeam: string | null;
   setSelectedTeam: (teamId: string | null) => void;
-  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
+  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<Task | undefined>;
   updateTaskStatus: (taskId: string, status: TaskStatus) => void;
-  createTeam: (team: Omit<Team, 'id' | 'createdAt'>) => void;
+  createTeam: (team: Omit<Team, 'id' | 'createdAt'>) => Promise<Team | undefined>;
   addUserToTeam: (teamId: string, userId: string) => void;
+  refreshData?: () => Promise<void>;
 }
