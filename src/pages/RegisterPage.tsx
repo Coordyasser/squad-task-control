@@ -1,18 +1,56 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implementar lógica de cadastro aqui
-    navigate('/');
+    
+    // Validar as senhas
+    if (password !== confirmPassword) {
+      toast({
+        title: "Erro no cadastro",
+        description: "As senhas não coincidem.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    // Simulação de cadastro - em aplicação real, usaria um serviço de autenticação
+    setTimeout(() => {
+      // Armazena informações do usuário no localStorage
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('user', JSON.stringify({
+        id: 'user' + Date.now(), // ID único baseado no timestamp
+        name,
+        email,
+        role: 'user'
+      }));
+      
+      toast({
+        title: "Conta criada com sucesso",
+        description: "Bem-vindo ao DPGE - Team Manager!",
+      });
+      
+      // Redirecionar para o dashboard
+      navigate('/dashboard');
+      setIsLoading(false);
+    }, 1000);
   };
 
   return (
@@ -45,6 +83,8 @@ const RegisterPage = () => {
                 type="text" 
                 placeholder="João Silva" 
                 required 
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
             </div>
 
@@ -55,6 +95,8 @@ const RegisterPage = () => {
                 type="email" 
                 placeholder="seu@email.com" 
                 required 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
@@ -65,6 +107,8 @@ const RegisterPage = () => {
                 type="password" 
                 placeholder="••••••••" 
                 required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
@@ -75,14 +119,17 @@ const RegisterPage = () => {
                 type="password" 
                 placeholder="••••••••" 
                 required 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
 
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-team-blue to-team-green hover:opacity-90 transition-opacity"
+              disabled={isLoading}
             >
-              Criar Conta
+              {isLoading ? "Criando conta..." : "Criar Conta"}
             </Button>
           </form>
 

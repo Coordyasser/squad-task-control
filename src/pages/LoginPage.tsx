@@ -1,18 +1,52 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implementar lógica de login aqui
-    navigate('/');
+    setIsLoading(true);
+    
+    // Simulação de autenticação - em aplicação real, usaria um serviço de autenticação
+    setTimeout(() => {
+      // Dados de usuário fictícios para simulação
+      if (email === 'admin@example.com' && password === 'senha123') {
+        // Armazena informações do usuário no localStorage
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('user', JSON.stringify({
+          id: 'user1',
+          name: 'Administrador',
+          email: 'admin@example.com',
+          role: 'admin'
+        }));
+        
+        toast({
+          title: "Login realizado com sucesso",
+          description: "Bem-vindo de volta!",
+        });
+        
+        // Redirecionar para o dashboard
+        navigate('/dashboard');
+      } else {
+        toast({
+          title: "Falha no login",
+          description: "Email ou senha incorretos.",
+          variant: "destructive",
+        });
+      }
+      setIsLoading(false);
+    }, 1000);
   };
 
   return (
@@ -55,6 +89,8 @@ const LoginPage = () => {
                 type="email" 
                 placeholder="seu@email.com" 
                 required 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
@@ -70,14 +106,17 @@ const LoginPage = () => {
                 type="password" 
                 placeholder="••••••••" 
                 required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
 
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-team-blue to-team-green hover:opacity-90 transition-opacity"
+              disabled={isLoading}
             >
-              Entrar
+              {isLoading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
 

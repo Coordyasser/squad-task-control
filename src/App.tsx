@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -32,13 +33,15 @@ const App = () => (
             <Route path="/register" element={<RegisterPage />} />
             
             {/* Protected Routes */}
-            <Route element={<AppLayout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/tasks" element={<KanbanBoard />} />
-              <Route path="/tasks/new" element={<TaskForm />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/teams" element={<TeamsPage />} />
-              <Route path="/teams/:teamId" element={<TeamsPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<AppLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/tasks" element={<KanbanBoard />} />
+                <Route path="/tasks/new" element={<TaskForm />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/teams" element={<TeamsPage />} />
+                <Route path="/teams/:teamId" element={<TeamsPage />} />
+              </Route>
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
@@ -15,16 +15,31 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useTeam } from '@/contexts/TeamContext';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   LayoutDashboard, 
   Kanban, 
   Users, 
   User, 
-  Plus 
+  Plus,
+  LogOut
 } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 export function AppSidebar() {
   const { currentUser, teams } = useTeam();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = () => {
+    logout();
+    toast({
+      title: "Logout realizado",
+      description: "Você saiu da sua conta com sucesso."
+    });
+    navigate('/');
+  };
 
   return (
     <Sidebar>
@@ -47,7 +62,7 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link to="/">
+                  <Link to="/dashboard">
                     <LayoutDashboard className="h-5 w-5" />
                     <span>Dashboard</span>
                   </Link>
@@ -122,8 +137,16 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <div className="px-4 py-2 text-xs text-muted-foreground">
-          <p>© 2025 DPGE - Team Manager</p>
+        <div className="px-4 py-2">
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleLogout} className="text-red-500 hover:text-red-700 w-full justify-start">
+              <LogOut className="h-5 w-5" />
+              <span>Sair</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <div className="mt-4 text-xs text-muted-foreground">
+            <p>© 2025 DPGE - Team Manager</p>
+          </div>
         </div>
       </SidebarFooter>
     </Sidebar>
