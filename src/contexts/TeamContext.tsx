@@ -26,9 +26,10 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
             
           if (error) {
+            console.error('Error fetching profile:', error);
             throw error;
           }
           
@@ -40,40 +41,17 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
               role: profile.role as UserRole,
               avatar: profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profile.name}`
             });
-          }
-        } else {
-          // For development purposes, use a default admin user if not authenticated
-          // In production, you would redirect to login page instead
-          const { data: adminUsers, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('role', 'admin')
-            .limit(1);
-
-          if (error) throw error;
-          
-          if (adminUsers && adminUsers.length > 0) {
-            const admin = adminUsers[0];
-            setCurrentUser({
-              id: admin.id,
-              name: admin.name,
-              email: admin.email,
-              role: admin.role as UserRole,
-              avatar: admin.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${admin.name}`
-            });
-            toast({
-              title: "Modo demonstração",
-              description: "Você está usando o app como administrador para demonstração.",
-            });
           } else {
-            // If no admin users exist, set current user to null but don't block UI
-            setCurrentUser(null);
+            console.log('No profile found for this user, they might need to complete registration');
             toast({
-              title: "Atenção",
-              description: "Nenhum usuário administrador encontrado. Por favor, crie um usuário ou faça login.",
+              title: "Perfil incompleto",
+              description: "Por favor, complete seu perfil para continuar.",
               variant: "destructive"
             });
           }
+        } else {
+          // For non-authenticated routes, don't set a default admin user
+          setCurrentUser(null);
         }
       } catch (error: any) {
         console.error('Error loading user profile:', error);
@@ -92,8 +70,8 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
   }, [toast]);
 
   if (isLoading || teamActions.isLoading) {
-    // You could return a loading component here
-    return <div>Carregando...</div>;
+    // Return a loading component
+    return <div className="flex items-center justify-center h-screen">Carregando...</div>;
   }
 
   // Allow rendering even without a user for public routes like login, register, landing page
@@ -101,9 +79,9 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
     <TeamContext.Provider
       value={{
         currentUser,
-        users: teamActions.users,
-        teams: teamActions.teams,
-        tasks: teamActions.tasks,
+        users: teamActions.users || [],
+        teams: teamActions.teams || [],
+        tasks: teamActions.tasks || [],
         selectedTeam: teamActions.selectedTeam,
         setSelectedTeam: teamActions.setSelectedTeam,
         addTask: teamActions.addTask,

@@ -21,9 +21,12 @@ const priorityColors = {
 };
 
 const KanbanBoard = () => {
-  const { tasks, users, teams, currentUser, updateTaskStatus } = useTeam();
+  const { tasks = [], users = [], teams = [], currentUser, updateTaskStatus } = useTeam();
   const [filter, setFilter] = useState<string | null>(null);
   const [teamFilter, setTeamFilter] = useState<string | null>(null);
+
+  // Ensure currentUser exists before accessing its properties
+  const isAdmin = currentUser?.role === 'admin';
 
   // Filter tasks based on selections
   const filteredTasks = tasks.filter(task => {
@@ -120,7 +123,7 @@ const KanbanBoard = () => {
       </div>
 
       <div className="flex flex-wrap gap-4 mb-6">
-        {currentUser.role === 'admin' && (
+        {isAdmin && (
           <div className="w-48">
             <label className="text-sm font-medium mb-1 block">Filtrar por Usuário</label>
             <Select

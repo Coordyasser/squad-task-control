@@ -13,22 +13,35 @@ import { TaskDetailsSection } from '@/components/task/TaskDetailsSection';
 import { TaskActionButtons } from '@/components/task/TaskActionButtons';
 
 const TaskForm = () => {
-  const { currentUser, users, teams, addTask } = useTeam();
+  const { currentUser, users = [], teams = [], addTask } = useTeam();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Make sure currentUser exists before accessing it
+  const userId = currentUser?.id || '';
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskSchema),
     defaultValues: {
       title: '',
       description: '',
-      assigneeId: currentUser.id,
+      assigneeId: userId,
       status: 'todo',
       priority: 'medium',
     },
   });
 
   const onSubmit = (data: TaskFormValues) => {
+    // Make sure currentUser exists before accessing it
+    if (!currentUser) {
+      toast({
+        title: "Erro",
+        description: "Você precisa estar autenticado para criar tarefas",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Convert date string to Date object if present
     const dueDate = data.dueDate ? new Date(data.dueDate) : undefined;
     
