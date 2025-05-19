@@ -74,23 +74,24 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
     return <div className="flex items-center justify-center h-screen">Carregando...</div>;
   }
 
+  // Create a safe context value with proper defaults
+  const contextValue: TeamContextType = {
+    currentUser: currentUser || null,
+    users: teamActions.users || [],
+    teams: teamActions.teams || [],
+    tasks: teamActions.tasks || [],
+    selectedTeam: teamActions.selectedTeam,
+    setSelectedTeam: teamActions.setSelectedTeam,
+    addTask: teamActions.addTask,
+    updateTaskStatus: teamActions.updateTaskStatus,
+    createTeam: teamActions.createTeam,
+    addUserToTeam: teamActions.addUserToTeam,
+    refreshData: teamActions.refreshData
+  };
+
   // Allow rendering even without a user for public routes like login, register, landing page
   return (
-    <TeamContext.Provider
-      value={{
-        currentUser,
-        users: teamActions.users || [],
-        teams: teamActions.teams || [],
-        tasks: teamActions.tasks || [],
-        selectedTeam: teamActions.selectedTeam,
-        setSelectedTeam: teamActions.setSelectedTeam,
-        addTask: teamActions.addTask,
-        updateTaskStatus: teamActions.updateTaskStatus,
-        createTeam: teamActions.createTeam,
-        addUserToTeam: teamActions.addUserToTeam,
-        refreshData: teamActions.refreshData
-      }}
-    >
+    <TeamContext.Provider value={contextValue}>
       {children}
     </TeamContext.Provider>
   );

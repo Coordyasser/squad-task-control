@@ -31,7 +31,7 @@ const TaskForm = () => {
     },
   });
 
-  const onSubmit = (data: TaskFormValues) => {
+  const onSubmit = async (data: TaskFormValues) => {
     // Make sure currentUser exists before accessing it
     if (!currentUser) {
       toast({
@@ -42,28 +42,42 @@ const TaskForm = () => {
       return;
     }
     
-    // Convert date string to Date object if present
-    const dueDate = data.dueDate ? new Date(data.dueDate) : undefined;
-    
-    // Ensure all required fields are included
-    addTask({
-      title: data.title,
-      description: data.description,
-      assigneeId: data.assigneeId,
-      status: data.status,
-      priority: data.priority,
-      teamId: data.teamId,
-      createdBy: currentUser.id,
-      dueDate,
-    });
+    try {
+      // Convert date string to Date object if present
+      const dueDate = data.dueDate ? new Date(data.dueDate) : undefined;
+      
+      // Ensure all required fields are included
+      await addTask({
+        title: data.title,
+        description: data.description,
+        assigneeId: data.assigneeId,
+        status: data.status,
+        priority: data.priority,
+        teamId: data.teamId,
+        createdBy: currentUser.id,
+        dueDate,
+      });
 
-    toast({
-      title: "Tarefa criada com sucesso",
-      description: "A tarefa foi adicionada ao quadro kanban",
-    });
-    
-    navigate('/tasks');
+      toast({
+        title: "Tarefa criada com sucesso",
+        description: "A tarefa foi adicionada ao quadro kanban",
+      });
+      
+      navigate('/tasks');
+    } catch (error) {
+      console.error('Erro ao criar tarefa:', error);
+      toast({
+        title: "Erro ao criar tarefa",
+        description: "Ocorreu um erro ao criar a tarefa. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
+
+  // If user is null, show loading state
+  if (!currentUser) {
+    return <div className="flex items-center justify-center h-screen">Carregando...</div>;
+  }
 
   return (
     <div className="max-w-2xl mx-auto">

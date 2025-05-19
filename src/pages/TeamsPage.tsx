@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -18,11 +18,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Plus, Users, Eye, UserPlus } from 'lucide-react';
 import { format } from 'date-fns';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from '@/hooks/use-toast';
 
 const TeamsPage = () => {
-  const { teams, users, currentUser, createTeam, addUserToTeam } = useTeam();
+  const { teams, users, currentUser, createTeam, addUserToTeam, refreshData } = useTeam();
   const navigate = useNavigate();
+  const { teamId } = useParams();
   const { toast } = useToast();
   
   const [isNewTeamDialogOpen, setIsNewTeamDialogOpen] = useState(false);
@@ -33,7 +34,21 @@ const TeamsPage = () => {
   const [newTeamDescription, setNewTeamDescription] = useState('');
   const [selectedUserId, setSelectedUserId] = useState('');
 
-  const handleCreateTeam = () => {
+  // If we have a teamId from URL params, set it as selected
+  useEffect(() => {
+    if (teamId) {
+      setSelectedTeam(teamId);
+    }
+  }, [teamId]);
+
+  // Force refresh data when page loads or teamId changes
+  useEffect(() => {
+    if (refreshData) {
+      refreshData();
+    }
+  }, [refreshData, teamId]);
+
+  const handleCreateTeam = async () => {
     if (!newTeamName.trim()) {
       toast({
         title: "Nome da equipe é obrigatório",
@@ -43,24 +58,48 @@ const TeamsPage = () => {
       return;
     }
 
-    createTeam({
-      name: newTeamName,
-      description: newTeamDescription,
-      members: [currentUser.id],
-      createdBy: currentUser.id
-    });
+    // Safety check for currentUser
+    if (!currentUser || !currentUser.id) {
+      toast({
+        title: "Erro de autenticação",
+        description: "Você precisa estar logado para criar uma equipe",
+        variant: "destructive"
+      });
+      return;
+    }
 
-    toast({
-      title: "Equipe criada com sucesso",
-      description: `A equipe ${newTeamName} foi criada.`,
-    });
+    try {
+      await createTeam({
+        name: newTeamName,
+        description: newTeamDescription,
+        members: [currentUser.id],
+        createdBy: currentUser.id
+      });
 
-    setNewTeamName('');
-    setNewTeamDescription('');
-    setIsNewTeamDialogOpen(false);
+      toast({
+        title: "Equipe criada com sucesso",
+        description: `A equipe ${newTeamName} foi criada.`,
+      });
+
+      setNewTeamName('');
+      setNewTeamDescription('');
+      setIsNewTeamDialogOpen(false);
+      
+      // Refresh data after creating a team
+      if (refreshData) {
+        refreshData();
+      }
+    } catch (error) {
+      console.error("Erro ao criar equipe:", error);
+      toast({
+        title: "Erro ao criar equipe",
+        description: "Ocorreu um erro ao criar a equipe. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleAddMember = () => {
+  const handleAddMember = async () => {
     if (!selectedTeam || !selectedUserId) {
       toast({
         title: "Seleção inválida",
@@ -70,19 +109,38 @@ const TeamsPage = () => {
       return;
     }
 
-    addUserToTeam(selectedTeam, selectedUserId);
-    
-    const team = teams.find(t => t.id === selectedTeam);
-    const user = users.find(u => u.id === selectedUserId);
-    
-    toast({
-      title: "Membro adicionado",
-      description: `${user?.name} foi adicionado à equipe ${team?.name}.`,
-    });
-    
-    setSelectedUserId('');
-    setIsAddMemberDialogOpen(false);
+    try {
+      await addUserToTeam(selectedTeam, selectedUserId);
+      
+      const team = teams.find(t => t.id === selectedTeam);
+      const user = users.find(u => u.id === selectedUserId);
+      
+      toast({
+        title: "Membro adicionado",
+        description: `${user?.name || 'Usuário'} foi adicionado à equipe ${team?.name || 'selecionada'}.`,
+      });
+      
+      setSelectedUserId('');
+      setIsAddMemberDialogOpen(false);
+      
+      // Refresh data after adding a member
+      if (refreshData) {
+        refreshData();
+      }
+    } catch (error) {
+      console.error("Erro ao adicionar membro:", error);
+      toast({
+        title: "Erro ao adicionar membro",
+        description: "Ocorreu um erro ao adicionar o membro à equipe. Tente novamente.",
+        variant: "destructive"
+      });
+    }
   };
+
+  // If user is null, show loading state
+  if (!currentUser) {
+    return <div className="flex items-center justify-center h-screen">Carregando...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -94,16 +152,15 @@ const TeamsPage = () => {
           </p>
         </div>
 
-        {currentUser.role === 'admin' && (
-          <Button onClick={() => setIsNewTeamDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Nova Equipe
-          </Button>
-        )}
+        {/* Show "Nova Equipe" button for all users */}
+        <Button onClick={() => setIsNewTeamDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nova Equipe
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {teams.map(team => {
+        {teams.length > 0 ? teams.map(team => {
           const teamMembers = users.filter(user => team.members.includes(user.id));
           const teamCreator = users.find(user => user.id === team.createdBy);
           
@@ -127,23 +184,21 @@ const TeamsPage = () => {
                     <div className="flex flex-wrap gap-2">
                       {teamMembers.map(member => (
                         <Avatar key={member.id} className="h-8 w-8">
-                          <AvatarImage src={member.avatar} />
-                          <AvatarFallback>{member.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                          <AvatarImage src={member.avatar} alt={member.name} />
+                          <AvatarFallback>{member.name?.substring(0, 2).toUpperCase() || '??'}</AvatarFallback>
                         </Avatar>
                       ))}
-                      {currentUser.role === 'admin' && (
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="h-8 w-8 rounded-full"
-                          onClick={() => {
-                            setSelectedTeam(team.id);
-                            setIsAddMemberDialogOpen(true);
-                          }}
-                        >
-                          <UserPlus className="h-4 w-4" />
-                        </Button>
-                      )}
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        className="h-8 w-8 rounded-full"
+                        onClick={() => {
+                          setSelectedTeam(team.id);
+                          setIsAddMemberDialogOpen(true);
+                        }}
+                      >
+                        <UserPlus className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                   
@@ -162,9 +217,7 @@ const TeamsPage = () => {
               </CardFooter>
             </Card>
           )
-        })}
-
-        {teams.length === 0 && (
+        }) : (
           <Card className="md:col-span-2 lg:col-span-3">
             <CardHeader>
               <CardTitle>Nenhuma equipe encontrada</CardTitle>
@@ -177,14 +230,12 @@ const TeamsPage = () => {
                 Clique no botão "Nova Equipe" para começar a criar equipes
               </p>
             </CardContent>
-            {currentUser.role === 'admin' && (
-              <CardFooter>
-                <Button className="w-full" onClick={() => setIsNewTeamDialogOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Criar Primeira Equipe
-                </Button>
-              </CardFooter>
-            )}
+            <CardFooter>
+              <Button className="w-full" onClick={() => setIsNewTeamDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Criar Primeira Equipe
+              </Button>
+            </CardFooter>
           </Card>
         )}
       </div>

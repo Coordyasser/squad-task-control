@@ -11,6 +11,7 @@ import KanbanBoard from "./pages/KanbanBoard";
 import TaskForm from "./pages/TaskForm";
 import ProfilePage from "./pages/ProfilePage";
 import TeamsPage from "./pages/TeamsPage";
+import TeamDetail from "./components/team/TeamDetail";
 import NotFound from "./pages/NotFound";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -42,7 +43,7 @@ const App = () => (
                 <Route path="/tasks/new" element={<TaskForm />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/teams" element={<TeamsPage />} />
-                <Route path="/teams/:teamId" element={<TeamsPage />} />
+                <Route path="/teams/:teamId" element={<TeamDetail />} />
               </Route>
             </Route>
             <Route path="*" element={<NotFound />} />
