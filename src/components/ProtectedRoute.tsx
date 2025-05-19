@@ -1,17 +1,23 @@
 
 import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-import { useTeam } from '@/contexts/TeamContext';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const ProtectedRoute = () => {
-  const { currentUser } = useTeam();
+  const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
 
-  // Se não estiver autenticado, redireciona para a página de login
-  if (!currentUser) {
-    return <Navigate to="/login" replace />;
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return <div className="flex items-center justify-center h-screen">Carregando...</div>;
   }
 
-  // Se estiver autenticado, renderiza as rotas filho
+  // If not authenticated, redirect to login page with return URL
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // If authenticated, render the protected routes
   return <Outlet />;
 };
 

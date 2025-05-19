@@ -1,22 +1,31 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/hooks/useAuth';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { register, isAuthenticated } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if user is already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validar as senhas
@@ -31,26 +40,16 @@ const RegisterPage = () => {
     
     setIsLoading(true);
     
-    // Simulação de cadastro - em aplicação real, usaria um serviço de autenticação
-    setTimeout(() => {
-      // Armazena informações do usuário no localStorage
-      localStorage.setItem('isAuthenticated', 'true');
-      localStorage.setItem('user', JSON.stringify({
-        id: 'user' + Date.now(), // ID único baseado no timestamp
-        name,
-        email,
-        role: 'user'
-      }));
-      
-      toast({
-        title: "Conta criada com sucesso",
-        description: "Bem-vindo ao DPGE - Team Manager!",
-      });
-      
-      // Redirecionar para o dashboard
-      navigate('/dashboard');
+    try {
+      const result = await register(email, password, name);
+      if (result.success) {
+        navigate('/dashboard');
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
