@@ -27,11 +27,18 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 
 export function AppSidebar() {
-  const { currentUser, teams } = useTeam();
-  const { logout } = useAuth();
+  const { currentUser, teams = [] } = useTeam();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Use either the currentUser from TeamContext or user from AuthContext
+  const displayUser = currentUser || user || {
+    name: 'Usuário',
+    role: 'member',
+    avatar: ''
+  };
+  
   const handleLogout = () => {
     logout();
     toast({
@@ -46,12 +53,12 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2 px-4 py-2">
           <Avatar>
-            <AvatarImage src={currentUser.avatar} alt={currentUser.name} />
-            <AvatarFallback>{currentUser.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarImage src={displayUser?.avatar} alt={displayUser?.name} />
+            <AvatarFallback>{displayUser?.name?.substring(0, 2)?.toUpperCase() || 'U'}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-sm font-medium">{currentUser.name}</p>
-            <p className="text-xs text-muted-foreground capitalize">{currentUser.role}</p>
+            <p className="text-sm font-medium">{displayUser?.name || 'Usuário'}</p>
+            <p className="text-xs text-muted-foreground capitalize">{displayUser?.role || 'member'}</p>
           </div>
         </div>
       </SidebarHeader>
@@ -88,7 +95,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         
-        {currentUser.role === 'admin' && (
+        {displayUser?.role === 'admin' && (
           <SidebarGroup>
             <SidebarGroupLabel>Administração</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -122,7 +129,7 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              {currentUser.role === 'admin' && (
+              {displayUser?.role === 'admin' && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link to="/teams/new" className="text-muted-foreground">
