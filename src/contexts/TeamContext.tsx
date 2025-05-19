@@ -4,7 +4,6 @@ import { TeamContextType, User, UserRole } from '../types/team';
 import { useTeamActions } from '../hooks/useTeamActions';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Navigate } from 'react-router-dom';
 
 // Create the context
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
@@ -95,14 +94,6 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
   if (isLoading || teamActions.isLoading) {
     // You could return a loading component here
     return <div>Carregando...</div>;
-  }
-
-  // Check if we're on a protected route that requires authentication
-  const isProtectedRoute = window.location.pathname.match(/^\/dashboard|^\/tasks|^\/profile|^\/teams/);
-  
-  // If no user and on a protected route, redirect to login
-  if (!currentUser && isProtectedRoute) {
-    return <Navigate to="/login" replace />;
   }
 
   // Allow rendering even without a user for public routes like login, register, landing page
