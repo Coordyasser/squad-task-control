@@ -2,31 +2,18 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTeam } from '@/contexts/TeamContext';
-import { 
-  Card, 
-  CardContent,
-  CardDescription, 
-  CardHeader, 
-  CardTitle, 
-  CardFooter 
-} from '@/components/ui/card';
-import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow 
-} from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { ArrowLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, ArrowLeft, Plus } from 'lucide-react';
-import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+
+// Import the extracted components
+import TeamHeader from './TeamHeader';
+import TeamMembersList from './TeamMembersList';
+import TeamTasksList from './TeamTasksList';
+import TeamInfoCard from './TeamInfoCard';
 
 const TeamDetail = () => {
   const { teamId } = useParams();
@@ -65,7 +52,7 @@ const TeamDetail = () => {
     );
   }
 
-  // Get team members and team tasks
+  // Get team members, tasks and creator
   const teamMembers = users.filter(user => team.members.includes(user.id));
   const teamTasks = tasks.filter(task => task.teamId === teamId);
   const teamCreator = users.find(user => user.id === team.createdBy);
@@ -114,159 +101,27 @@ const TeamDetail = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" onClick={() => navigate('/teams')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Voltar
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight gradient-heading">{team.name}</h1>
-            <p className="text-muted-foreground">{team.description}</p>
-          </div>
-        </div>
-        
-        <Button onClick={() => setIsAddMemberDialogOpen(true)}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Adicionar Membro
-        </Button>
-      </div>
+      <TeamHeader 
+        team={team} 
+        onAddMember={() => setIsAddMemberDialogOpen(true)} 
+      />
 
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Team Members Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Membros</CardTitle>
-            <CardDescription>
-              Esta equipe tem {teamMembers.length} {teamMembers.length === 1 ? 'membro' : 'membros'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Função</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {teamMembers.map(member => (
-                  <TableRow key={member.id}>
-                    <TableCell className="flex items-center space-x-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={member.avatar} alt={member.name} />
-                        <AvatarFallback>{member.name?.substring(0, 2).toUpperCase() || '??'}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{member.name}</p>
-                        <p className="text-xs text-muted-foreground">{member.email}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={member.id === team.createdBy ? "default" : "outline"}>
-                        {member.id === team.createdBy ? 'Criador' : 'Membro'}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-          <CardFooter className="flex justify-center border-t bg-muted/50 px-6 py-3">
-            <Button variant="outline" onClick={() => setIsAddMemberDialogOpen(true)}>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Adicionar Membro
-            </Button>
-          </CardFooter>
-        </Card>
-
-        {/* Team Tasks Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tarefas</CardTitle>
-            <CardDescription>
-              Esta equipe tem {teamTasks.length} {teamTasks.length === 1 ? 'tarefa' : 'tarefas'} atribuídas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {teamTasks.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Título</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Prioridade</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {teamTasks.map(task => (
-                    <TableRow key={task.id}>
-                      <TableCell>{task.title}</TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          task.status === 'done' ? 'default' : 
-                          task.status === 'in-progress' ? 'secondary' : 
-                          'outline'
-                        }>
-                          {task.status === 'todo' ? 'A fazer' : 
-                          task.status === 'in-progress' ? 'Em progresso' : 
-                          task.status === 'review' ? 'Em revisão' : 'Concluída'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={
-                          task.priority === 'high' ? 'destructive' : 
-                          task.priority === 'medium' ? 'secondary' : 
-                          'outline'
-                        }>
-                          {task.priority === 'high' ? 'Alta' : 
-                          task.priority === 'medium' ? 'Média' : 'Baixa'}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-muted-foreground mb-4">Nenhuma tarefa atribuída a esta equipe ainda</p>
-              </div>
-            )}
-          </CardContent>
-          <CardFooter className="flex justify-center border-t bg-muted/50 px-6 py-3">
-            <Button onClick={() => navigate('/tasks/new')}>
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Tarefa
-            </Button>
-          </CardFooter>
-        </Card>
+        <TeamMembersList 
+          team={team} 
+          teamMembers={teamMembers} 
+          onAddMember={() => setIsAddMemberDialogOpen(true)} 
+        />
+        
+        <TeamTasksList teamTasks={teamTasks} />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Criado por:</span>
-              <span className="font-medium">{teamCreator?.name || 'Desconhecido'}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Data de criação:</span>
-              <span className="font-medium">{format(new Date(team.createdAt), 'dd/MM/yyyy')}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total de membros:</span>
-              <span className="font-medium">{teamMembers.length}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Total de tarefas:</span>
-              <span className="font-medium">{teamTasks.length}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <TeamInfoCard 
+        team={team} 
+        teamCreator={teamCreator} 
+        teamMembers={teamMembers} 
+        teamTasks={teamTasks} 
+      />
 
       {/* Add Member Dialog */}
       <Dialog open={isAddMemberDialogOpen} onOpenChange={setIsAddMemberDialogOpen}>
