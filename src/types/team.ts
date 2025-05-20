@@ -46,4 +46,5 @@ export interface TeamContextType {
   createTeam: (team: Omit<Team, 'id' | 'createdAt'>) => Promise<Team | undefined>;
   addUserToTeam: (teamId: string, userId: string) => void;
   refreshData?: () => Promise<void>;
+  isLoading?: boolean; // Add isLoading property as optional
 }

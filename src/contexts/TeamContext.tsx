@@ -3,7 +3,7 @@ import React, { createContext, useContext, ReactNode, useState, useEffect } from
 import { TeamContextType, User, UserRole } from '../types/team';
 import { useTeamActions } from '../hooks/useTeamActions';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 // Create the context
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
@@ -86,7 +86,8 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
     updateTaskStatus: teamActions.updateTaskStatus,
     createTeam: teamActions.createTeam,
     addUserToTeam: teamActions.addUserToTeam,
-    refreshData: teamActions.refreshData
+    refreshData: teamActions.refreshData,
+    isLoading: teamActions.isLoading // Pass the isLoading prop from teamActions
   };
 
   // Allow rendering even without a user for public routes like login, register, landing page
