@@ -1,9 +1,197 @@
+import * as React from "react"
+import {
+  Toast,
+  ToastActionElement,
+  ToastProps,
+} from "@/components/ui/toast"
 
-// The original file already exists, but we need to add an export for ToastFunction
-import { Toast, ToastActionElement, ToastProps } from '@/components/ui/toast';
+const TOAST_LIMIT = 1
+const TOAST_REMOVE_DELAY = 1000000
 
-type ToastFunction = (props: ToastProps) => void;
+type ToasterToast = ToastProps & {
+  id: string
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+}
 
+const actionTypes = {
+  ADD_TOAST: "ADD_TOAST",
+  UPDATE_TOAST: "UPDATE_TOAST",
+  DISMISS_TOAST: "DISMISS_TOAST",
+  REMOVE_TOAST: "REMOVE_TOAST",
+} as const
+
+let count = 0
+
+function genId() {
+  count = (count + 1) % Number.MAX_VALUE
+  return count.toString()
+}
+
+type ActionType = typeof actionTypes
+
+type Action =
+  | {
+      type: ActionType["ADD_TOAST"]
+      toast: ToasterToast
+    }
+  | {
+      type: ActionType["UPDATE_TOAST"]
+      toast: Partial<ToasterToast>
+    }
+  | {
+      type: ActionType["DISMISS_TOAST"]
+      toastId?: string
+    }
+  | {
+      type: ActionType["REMOVE_TOAST"]
+      toastId?: string
+    }
+
+interface State {
+  toasts: ToasterToast[]
+}
+
+const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
+
+const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case actionTypes.ADD_TOAST:
+      return {
+        ...state,
+        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+      }
+
+    case actionTypes.UPDATE_TOAST:
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === action.toast.id ? { ...t, ...action.toast } : t
+        ),
+      }
+
+    case actionTypes.DISMISS_TOAST: {
+      const { toastId } = action
+
+      // ! Side effects ! - This could be extracted into a dismissToast() action,
+      // but I'll keep it here for simplicity
+      if (toastId) {
+        addToRemoveQueue(toastId)
+      } else {
+        state.toasts.forEach((toast) => {
+          addToRemoveQueue(toast.id)
+        })
+      }
+
+      return {
+        ...state,
+        toasts: state.toasts.map((t) =>
+          t.id === toastId || toastId === undefined
+            ? {
+                ...t,
+                open: false,
+              }
+            : t
+        ),
+      }
+    }
+    case actionTypes.REMOVE_TOAST:
+      if (action.toastId === undefined) {
+        return {
+          ...state,
+          toasts: [],
+        }
+      }
+      return {
+        ...state,
+        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+      }
+  }
+}
+
+function addToRemoveQueue(toastId: string) {
+  if (toastTimeouts.has(toastId)) {
+    return
+  }
+
+  const timeout = setTimeout(() => {
+    toastTimeouts.delete(toastId)
+    dispatch({
+      type: actionTypes.REMOVE_TOAST,
+      toastId: toastId,
+    })
+  }, TOAST_REMOVE_DELAY)
+
+  toastTimeouts.set(toastId, timeout)
+}
+
+interface ToasterToastProps extends React.ComponentPropsWithoutRef<typeof Toast> {
+  id: string
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+}
+
+const useToast = () => {
+  const [state, setState] = React.useState<State>({
+    toasts: [],
+  })
+
+  React.useEffect(() => {
+    const listener = (event: CustomEvent<Action>) => {
+      setState((prevState) => reducer(prevState, event.detail))
+    }
+
+    window.addEventListener("toast", listener as EventListener)
+
+    return () => window.removeEventListener("toast", listener as EventListener)
+  }, [])
+
+  return {
+    ...state,
+    toast,
+    dismiss: (toastId?: string) => dispatch({
+      type: actionTypes.DISMISS_TOAST,
+      toastId,
+    }),
+  }
+}
+
+type ToastFunction = (props: Partial<ToasterToastProps>) => void;
+
+const dispatch = (action: Action) => {
+  const event = new CustomEvent("toast", {
+    detail: action,
+  })
+  window.dispatchEvent(event)
+}
+
+function toast(props: Partial<ToasterToastProps>) {
+  const id = props.id || genId()
+
+  dispatch({
+    type: actionTypes.ADD_TOAST,
+    toast: {
+      ...props,
+      id,
+      open: true,
+      onOpenChange: (open) => {
+        if (!open) dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id })
+      },
+    },
+  })
+
+  return {
+    id,
+    dismiss: () => dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id }),
+    update: (props: ToasterToastProps) =>
+      dispatch({
+        type: actionTypes.UPDATE_TOAST,
+        toast: { ...props, id },
+      }),
+  }
+}
+
+export { useToast, toast };
 export type { ToastFunction };
-
-export { useToast, toast } from "@/components/ui/use-toast";
