@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   Sidebar,
   SidebarContent,
@@ -22,7 +22,8 @@ import {
   Users, 
   User, 
   Plus,
-  LogOut
+  LogOut,
+  FolderPlus
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -30,6 +31,7 @@ export function AppSidebar() {
   const { currentUser, teams = [] } = useTeam();
   const { logout, user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   // Use either the currentUser from TeamContext or user from AuthContext
@@ -42,11 +44,14 @@ export function AppSidebar() {
   const handleLogout = () => {
     logout();
     toast({
-      title: "Logout realizado",
-      description: "Você saiu da sua conta com sucesso."
+      title: "Logout realizado"
     });
     navigate('/');
   };
+
+  // Check if the current location is a team-related page
+  const isTeamsPage = location.pathname.includes('/teams');
+  const isNewTeamPage = location.pathname === '/teams/new';
 
   return (
     <Sidebar>
@@ -95,31 +100,42 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         
-        {displayUser?.role === 'admin' && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Administração</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link to="/teams">
-                      <Users className="h-5 w-5" />
-                      <span>Equipes</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-        
         <SidebarGroup>
           <SidebarGroupLabel>Equipes</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  asChild
+                  isActive={isTeamsPage && !isNewTeamPage}
+                >
+                  <Link to="/teams">
+                    <Users className="h-5 w-5" />
+                    <span>Minhas Equipes</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              
+              {displayUser?.role === 'admin' && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton 
+                    asChild
+                    isActive={isNewTeamPage}
+                  >
+                    <Link to="/teams/new">
+                      <FolderPlus className="h-5 w-5" />
+                      <span>Nova Equipe</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+              
               {teams.map(team => (
                 <SidebarMenuItem key={team.id}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton 
+                    asChild
+                    isActive={location.pathname === `/teams/${team.id}`}
+                  >
                     <Link to={`/teams/${team.id}`}>
                       <span className="w-5 h-5 flex items-center justify-center bg-primary/10 rounded-md text-xs font-medium text-primary">
                         {team.name.substring(0, 2).toUpperCase()}
@@ -129,19 +145,27 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
-              {displayUser?.role === 'admin' && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <Link to="/teams/new" className="text-muted-foreground">
-                      <Plus className="h-4 w-4" />
-                      <span>Nova Equipe</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        
+        {displayUser?.role === 'admin' && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administração</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <Link to="/teams">
+                      <Users className="h-5 w-5" />
+                      <span>Gerenciar Equipes</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter>
         <div className="px-4 py-2">

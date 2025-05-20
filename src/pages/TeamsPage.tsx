@@ -1,19 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useTeam } from '@/contexts/TeamContext';
 import { Plus, Users } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import TeamCard from '@/components/team/TeamCard';
 import EmptyTeamState from '@/components/team/EmptyTeamState';
 import NewTeamDialog from '@/components/team/NewTeamDialog';
 import AddMemberDialog from '@/components/team/AddMemberDialog';
 
 const TeamsPage = () => {
-  const { teams, users, currentUser, createTeam, addUserToTeam, refreshData } = useTeam();
+  const { teams = [], users = [], currentUser, createTeam, addUserToTeam, refreshData, isLoading } = useTeam();
   const { teamId } = useParams();
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const [isNewTeamDialogOpen, setIsNewTeamDialogOpen] = useState(false);
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
@@ -30,19 +31,17 @@ const TeamsPage = () => {
     }
   }, [teamId]);
 
-  // Force refresh data when page loads or teamId changes
+  // Force refresh data when page loads, but only once
   useEffect(() => {
     if (refreshData) {
       refreshData();
     }
-  }, [refreshData, teamId]);
+  }, [refreshData]);
 
   const handleCreateTeam = async () => {
     if (!newTeamName.trim()) {
       toast({
-        title: "Nome da equipe é obrigatório",
-        description: "Por favor, informe um nome para a equipe",
-        variant: "destructive"
+        title: "Nome da equipe é obrigatório"
       });
       return;
     }
@@ -50,9 +49,7 @@ const TeamsPage = () => {
     // Safety check for currentUser
     if (!currentUser || !currentUser.id) {
       toast({
-        title: "Erro de autenticação",
-        description: "Você precisa estar logado para criar uma equipe",
-        variant: "destructive"
+        title: "Erro de autenticação"
       });
       return;
     }
@@ -66,8 +63,7 @@ const TeamsPage = () => {
       });
 
       toast({
-        title: "Equipe criada com sucesso",
-        description: `A equipe ${newTeamName} foi criada.`,
+        title: "Equipe criada com sucesso"
       });
 
       setNewTeamName('');
@@ -81,9 +77,7 @@ const TeamsPage = () => {
     } catch (error) {
       console.error("Erro ao criar equipe:", error);
       toast({
-        title: "Erro ao criar equipe",
-        description: "Ocorreu um erro ao criar a equipe. Tente novamente.",
-        variant: "destructive"
+        title: "Erro ao criar equipe"
       });
     }
   };
@@ -91,9 +85,7 @@ const TeamsPage = () => {
   const handleAddMember = async () => {
     if (!selectedTeam || !selectedUserId) {
       toast({
-        title: "Seleção inválida",
-        description: "Selecione um membro para adicionar à equipe",
-        variant: "destructive"
+        title: "Seleção inválida"
       });
       return;
     }
@@ -105,8 +97,7 @@ const TeamsPage = () => {
       const user = users.find(u => u.id === selectedUserId);
       
       toast({
-        title: "Membro adicionado",
-        description: `${user?.name || 'Usuário'} foi adicionado à equipe ${team?.name || 'selecionada'}.`,
+        title: "Membro adicionado"
       });
       
       setSelectedUserId('');
@@ -119,9 +110,7 @@ const TeamsPage = () => {
     } catch (error) {
       console.error("Erro ao adicionar membro:", error);
       toast({
-        title: "Erro ao adicionar membro",
-        description: "Ocorreu um erro ao adicionar o membro à equipe. Tente novamente.",
-        variant: "destructive"
+        title: "Erro ao adicionar membro"
       });
     }
   };
@@ -131,9 +120,25 @@ const TeamsPage = () => {
     setIsAddMemberDialogOpen(true);
   };
 
-  // If user is null, show loading state
+  // If data is loading, show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Carregando equipes...</p>
+      </div>
+    );
+  }
+
+  // If user is null, show error state
   if (!currentUser) {
-    return <div className="flex items-center justify-center h-screen">Carregando...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-muted-foreground mb-4">Você precisa estar logado para acessar esta página</p>
+          <Button onClick={() => navigate('/login')}>Ir para Login</Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -146,17 +151,27 @@ const TeamsPage = () => {
           </p>
         </div>
 
-        {/* Show "Nova Equipe" button for all users */}
-        <Button onClick={() => setIsNewTeamDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Nova Equipe
-        </Button>
+        {/* Show "Nova Equipe" button for admin users */}
+        {currentUser?.role === 'admin' && (
+          <Button onClick={() => setIsNewTeamDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Nova Equipe
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {teams.length > 0 ? teams.map(team => {
-          const teamMembers = users.filter(user => team.members.includes(user.id));
-          const teamCreator = users.find(user => user.id === team.createdBy);
+        {Array.isArray(teams) && teams.length > 0 ? teams.map(team => {
+          // Ensure we have valid data before rendering
+          if (!team || !team.id) return null;
+          
+          const teamMembers = Array.isArray(users) 
+            ? users.filter(user => team.members && Array.isArray(team.members) && team.members.includes(user.id))
+            : [];
+            
+          const teamCreator = Array.isArray(users)
+            ? users.find(user => user.id === team.createdBy)
+            : undefined;
           
           return (
             <TeamCard
@@ -166,7 +181,7 @@ const TeamsPage = () => {
               teamCreator={teamCreator}
               onAddMember={handleOpenAddMemberDialog}
             />
-          )
+          );
         }) : (
           <EmptyTeamState onCreateTeam={() => setIsNewTeamDialogOpen(true)} />
         )}
