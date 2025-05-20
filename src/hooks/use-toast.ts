@@ -3,7 +3,6 @@ import * as React from "react"
 import {
   Toast,
   ToastActionElement,
-  ToastProps,
 } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
@@ -130,7 +129,14 @@ function addToRemoveQueue(toastId: string) {
   toastTimeouts.set(toastId, timeout)
 }
 
-export type ToastProps = Partial<ToasterToast>
+// Define toast props for consumption
+export interface ToastProps {
+  id?: string
+  title?: React.ReactNode
+  description?: React.ReactNode
+  action?: ToastActionElement
+  variant?: "default" | "destructive"
+}
 
 const useToast = () => {
   const [state, setState] = React.useState<State>({
@@ -157,11 +163,13 @@ const useToast = () => {
   }
 }
 
-export type ToastFunction = (props: ToastProps) => {
-  id: string;
-  dismiss: () => void;
-  update: (props: ToastProps) => void;
-};
+export interface ToastFunction {
+  (props: ToastProps): {
+    id: string
+    dismiss: () => void
+    update: (props: ToastProps) => void
+  }
+}
 
 const dispatch = (action: Action) => {
   const event = new CustomEvent("toast", {
@@ -170,7 +178,7 @@ const dispatch = (action: Action) => {
   window.dispatchEvent(event)
 }
 
-function toast(props: ToastProps) {
+const toast: ToastFunction = (props) => {
   const id = props.id || genId()
 
   dispatch({
@@ -196,5 +204,4 @@ function toast(props: ToastProps) {
   }
 }
 
-export { useToast, toast };
-export type { ToastFunction };
+export { useToast, toast }
