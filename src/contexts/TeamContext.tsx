@@ -12,7 +12,7 @@ const TeamContext = createContext<TeamContextType | undefined>(undefined);
 export const TeamProvider = ({ children }: { children: ReactNode }) => {
   const teamActions = useTeamActions();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [userLoading, setUserLoading] = useState(true);
   const { toast } = useToast();
 
   // Check for authenticated user and load profile
@@ -62,16 +62,27 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
         });
         setCurrentUser(null);
       } finally {
-        setIsLoading(false);
+        setUserLoading(false);
       }
     };
 
     checkUser();
   }, [toast]);
 
-  if (isLoading || teamActions.isLoading) {
-    // Return a loading component
-    return <div className="flex items-center justify-center h-screen">Carregando...</div>;
+  // Determine if we're still loading
+  const isLoading = userLoading || teamActions.isLoading;
+
+  // Show loading component if either user or team data is still loading
+  if (isLoading) {
+    // Return a better loading component
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Carregando informações...</p>
+        </div>
+      </div>
+    );
   }
 
   // Create a safe context value with proper defaults
@@ -87,7 +98,7 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
     createTeam: teamActions.createTeam,
     addUserToTeam: teamActions.addUserToTeam,
     refreshData: teamActions.refreshData,
-    isLoading: teamActions.isLoading // Pass the isLoading prop from teamActions
+    isLoading: isLoading // Pass the combined isLoading state
   };
 
   // Allow rendering even without a user for public routes like login, register, landing page

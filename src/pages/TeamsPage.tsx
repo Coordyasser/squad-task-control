@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useTeam } from '@/contexts/TeamContext';
-import { Plus, Users } from 'lucide-react';
+import { Plus, Users, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import TeamCard from '@/components/team/TeamCard';
 import EmptyTeamState from '@/components/team/EmptyTeamState';
@@ -23,6 +23,7 @@ const TeamsPage = () => {
   const [newTeamName, setNewTeamName] = useState('');
   const [newTeamDescription, setNewTeamDescription] = useState('');
   const [selectedUserId, setSelectedUserId] = useState('');
+  const [pageLoading, setPageLoading] = useState(false);
 
   // If we have a teamId from URL params, set it as selected
   useEffect(() => {
@@ -33,9 +34,20 @@ const TeamsPage = () => {
 
   // Force refresh data when page loads, but only once
   useEffect(() => {
-    if (refreshData) {
-      refreshData();
-    }
+    const loadData = async () => {
+      setPageLoading(true);
+      try {
+        if (refreshData) {
+          await refreshData();
+        }
+      } catch (error) {
+        console.error("Error refreshing data:", error);
+      } finally {
+        setPageLoading(false);
+      }
+    };
+    
+    loadData();
   }, [refreshData]);
 
   const handleCreateTeam = async () => {
@@ -55,6 +67,7 @@ const TeamsPage = () => {
     }
 
     try {
+      setPageLoading(true);
       await createTeam({
         name: newTeamName,
         description: newTeamDescription,
@@ -72,13 +85,15 @@ const TeamsPage = () => {
       
       // Refresh data after creating a team
       if (refreshData) {
-        refreshData();
+        await refreshData();
       }
     } catch (error) {
       console.error("Erro ao criar equipe:", error);
       toast({
         title: "Erro ao criar equipe"
       });
+    } finally {
+      setPageLoading(false);
     }
   };
 
@@ -91,10 +106,8 @@ const TeamsPage = () => {
     }
 
     try {
+      setPageLoading(true);
       await addUserToTeam(selectedTeam, selectedUserId);
-      
-      const team = teams.find(t => t.id === selectedTeam);
-      const user = users.find(u => u.id === selectedUserId);
       
       toast({
         title: "Membro adicionado"
@@ -105,13 +118,15 @@ const TeamsPage = () => {
       
       // Refresh data after adding a member
       if (refreshData) {
-        refreshData();
+        await refreshData();
       }
     } catch (error) {
       console.error("Erro ao adicionar membro:", error);
       toast({
         title: "Erro ao adicionar membro"
       });
+    } finally {
+      setPageLoading(false);
     }
   };
 
@@ -121,10 +136,13 @@ const TeamsPage = () => {
   };
 
   // If data is loading, show loading state
-  if (isLoading) {
+  if (isLoading || pageLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Carregando equipes...</p>
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+          <p className="text-muted-foreground">Carregando equipes...</p>
+        </div>
       </div>
     );
   }
