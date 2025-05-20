@@ -50,7 +50,6 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
             });
           }
         } else {
-          // For non-authenticated routes, don't set a default admin user
           setCurrentUser(null);
         }
       } catch (error: any) {
@@ -69,21 +68,8 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
     checkUser();
   }, [toast]);
 
-  // Determine if we're still loading
+  // Determine if we're still loading (combining user and team loading states)
   const isLoading = userLoading || teamActions.isLoading;
-
-  // Show loading component if either user or team data is still loading
-  if (isLoading) {
-    // Return a better loading component
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Carregando informações...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Create a safe context value with proper defaults
   const contextValue: TeamContextType = {
@@ -98,10 +84,9 @@ export const TeamProvider = ({ children }: { children: ReactNode }) => {
     createTeam: teamActions.createTeam,
     addUserToTeam: teamActions.addUserToTeam,
     refreshData: teamActions.refreshData,
-    isLoading: isLoading // Pass the combined isLoading state
+    isLoading // Pass the combined isLoading state
   };
 
-  // Allow rendering even without a user for public routes like login, register, landing page
   return (
     <TeamContext.Provider value={contextValue}>
       {children}

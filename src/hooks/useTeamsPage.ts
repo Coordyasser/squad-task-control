@@ -5,7 +5,7 @@ import { useTeam } from '@/contexts/TeamContext';
 import { useToast } from '@/components/ui/use-toast';
 
 export function useTeamsPage() {
-  const { teams = [], users = [], currentUser, createTeam, addUserToTeam, refreshData, isLoading } = useTeam();
+  const { teams = [], users = [], currentUser, createTeam, addUserToTeam, refreshData, isLoading: contextLoading } = useTeam();
   const { teamId } = useParams();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -26,7 +26,7 @@ export function useTeamsPage() {
     }
   }, [teamId]);
 
-  // Force refresh data when page loads, but only once
+  // Force refresh data when page loads
   useEffect(() => {
     const loadData = async () => {
       setPageLoading(true);
@@ -42,7 +42,7 @@ export function useTeamsPage() {
     };
     
     loadData();
-  }, [refreshData]);
+  }, []);
 
   const handleCreateTeam = async () => {
     if (!newTeamName.trim()) {
@@ -133,7 +133,7 @@ export function useTeamsPage() {
     teams,
     users,
     currentUser,
-    isLoading: isLoading || pageLoading,
+    isLoading: contextLoading || pageLoading,
     isNewTeamDialogOpen,
     setIsNewTeamDialogOpen,
     isAddMemberDialogOpen,

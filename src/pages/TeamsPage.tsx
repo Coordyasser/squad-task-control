@@ -7,6 +7,7 @@ import TeamsList from '@/components/team/TeamsList';
 import TeamsHeader from '@/components/team/TeamsHeader';
 import NewTeamDialog from '@/components/team/NewTeamDialog';
 import AddMemberDialog from '@/components/team/AddMemberDialog';
+import { Progress } from "@/components/ui/progress";
 
 const TeamsPage = () => {
   const {
@@ -31,19 +32,7 @@ const TeamsPage = () => {
     navigate
   } = useTeamsPage();
 
-  // If data is loading, show loading state
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-          <p className="text-muted-foreground">Carregando equipes...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If user is null, show error state
+  // Se o usuário for nulo, exibir estado de erro/login necessário
   if (!currentUser) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -62,12 +51,23 @@ const TeamsPage = () => {
         showCreateButton={currentUser?.role === 'admin'}
       />
 
-      <TeamsList 
-        teams={teams} 
-        users={users} 
-        onAddMember={handleOpenAddMemberDialog}
-        onCreateTeam={() => setIsNewTeamDialogOpen(true)}
-      />
+      {isLoading ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-center h-8">
+            <Loader2 className="h-5 w-5 animate-spin mr-2" />
+            <p className="text-muted-foreground">Carregando equipes...</p>
+          </div>
+          <Progress value={30} className="h-2 w-full animate-pulse" />
+        </div>
+      ) : (
+        <TeamsList 
+          teams={teams} 
+          users={users} 
+          isLoading={isLoading}
+          onAddMember={handleOpenAddMemberDialog}
+          onCreateTeam={() => setIsNewTeamDialogOpen(true)}
+        />
+      )}
 
       {/* New Team Dialog */}
       <NewTeamDialog

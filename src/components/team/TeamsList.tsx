@@ -3,10 +3,12 @@ import React from 'react';
 import { Team, User } from '@/types/team';
 import TeamCard from './TeamCard';
 import EmptyTeamState from './EmptyTeamState';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TeamsListProps {
   teams: Team[];
   users: User[];
+  isLoading?: boolean;
   onAddMember: (teamId: string) => void;
   onCreateTeam: () => void;
 }
@@ -14,9 +16,22 @@ interface TeamsListProps {
 const TeamsList: React.FC<TeamsListProps> = ({ 
   teams, 
   users, 
+  isLoading = false,
   onAddMember,
   onCreateTeam
 }) => {
+  // Mostrar loading skeletons quando estiver carregando
+  if (isLoading) {
+    return (
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-[280px] rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  // Mostrar estado vazio quando não houver equipes
   if (!Array.isArray(teams) || teams.length === 0) {
     return <EmptyTeamState onCreateTeam={onCreateTeam} />;
   }
@@ -24,7 +39,7 @@ const TeamsList: React.FC<TeamsListProps> = ({
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {teams.map(team => {
-        // Ensure we have valid data before rendering
+        // Garantir que temos dados válidos antes de renderizar
         if (!team || !team.id) return null;
         
         const teamMembers = Array.isArray(users) 
