@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import {
   Toast,
@@ -8,11 +9,14 @@ import {
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
-type ToasterToast = ToastProps & {
+type ToasterToast = {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  variant?: "default" | "destructive"
 }
 
 const actionTypes = {
@@ -126,12 +130,7 @@ function addToRemoveQueue(toastId: string) {
   toastTimeouts.set(toastId, timeout)
 }
 
-interface ToasterToastProps extends React.ComponentPropsWithoutRef<typeof Toast> {
-  id: string
-  title?: React.ReactNode
-  description?: React.ReactNode
-  action?: ToastActionElement
-}
+export type ToastProps = Partial<ToasterToast>
 
 const useToast = () => {
   const [state, setState] = React.useState<State>({
@@ -158,7 +157,11 @@ const useToast = () => {
   }
 }
 
-type ToastFunction = (props: Partial<ToasterToastProps>) => void;
+export type ToastFunction = (props: ToastProps) => {
+  id: string;
+  dismiss: () => void;
+  update: (props: ToastProps) => void;
+};
 
 const dispatch = (action: Action) => {
   const event = new CustomEvent("toast", {
@@ -167,7 +170,7 @@ const dispatch = (action: Action) => {
   window.dispatchEvent(event)
 }
 
-function toast(props: Partial<ToasterToastProps>) {
+function toast(props: ToastProps) {
   const id = props.id || genId()
 
   dispatch({
@@ -179,16 +182,16 @@ function toast(props: Partial<ToasterToastProps>) {
       onOpenChange: (open) => {
         if (!open) dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id })
       },
-    },
+    } as ToasterToast,
   })
 
   return {
     id,
     dismiss: () => dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id }),
-    update: (props: ToasterToastProps) =>
+    update: (props: ToastProps) =>
       dispatch({
         type: actionTypes.UPDATE_TOAST,
-        toast: { ...props, id },
+        toast: { ...props, id } as Partial<ToasterToast>,
       }),
   }
 }
