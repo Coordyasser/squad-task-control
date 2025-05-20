@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Card,
   CardContent,
@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useTeam } from '@/contexts/TeamContext';
 import { format } from 'date-fns';
+import { useAuth } from '@/hooks/useAuth';
 
 // Define priority colors
 const priorityColors = {
@@ -42,32 +43,59 @@ const statusLabels = {
 
 const ProfilePage = () => {
   const { currentUser, tasks, teams } = useTeam();
+  const { user } = useAuth();
   
-  // Get user's tasks
-  const userTasks = tasks.filter(task => task.assigneeId === currentUser.id);
-  const createdTasks = tasks.filter(task => task.createdBy === currentUser.id);
+  // Use either currentUser from TeamContext or user from AuthContext
+  const displayUser = currentUser || user;
   
-  // Get user's teams
-  const userTeams = teams.filter(team => team.members.includes(currentUser.id));
+  // Safety check - if no user data is available, show a loading state
+  if (!displayUser) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 flex justify-center items-center min-h-[60vh]">
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>Carregando perfil...</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">Aguarde enquanto carregamos seus dados.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  // Get user's tasks - safely check if tasks array exists
+  const userTasks = Array.isArray(tasks) 
+    ? tasks.filter(task => task.assigneeId === displayUser.id)
+    : [];
+    
+  const createdTasks = Array.isArray(tasks)
+    ? tasks.filter(task => task.createdBy === displayUser.id)
+    : [];
+  
+  // Get user's teams - safely check if teams array exists
+  const userTeams = Array.isArray(teams)
+    ? teams.filter(team => team.members && team.members.includes(displayUser.id))
+    : [];
 
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex flex-col md:flex-row gap-6 items-start mb-8">
         <Avatar className="h-24 w-24">
-          <AvatarImage src={currentUser.avatar} />
-          <AvatarFallback>{currentUser.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+          <AvatarImage src={displayUser.avatar} />
+          <AvatarFallback>{displayUser.name?.substring(0, 2).toUpperCase() || 'U'}</AvatarFallback>
         </Avatar>
         
         <div>
           <h1 className="text-3xl font-bold tracking-tight mb-1">
-            {currentUser.name}
+            {displayUser.name}
           </h1>
           <p className="text-muted-foreground mb-2">
-            {currentUser.email}
+            {displayUser.email}
           </p>
           <div className="flex flex-wrap gap-2">
             <Badge variant="secondary" className="capitalize">
-              {currentUser.role}
+              {displayUser.role}
             </Badge>
             <Badge variant="outline">
               {userTeams.length} Equipes
@@ -200,7 +228,7 @@ const ProfilePage = () => {
                         return (
                           <Avatar key={memberId} className="h-8 w-8">
                             <AvatarFallback>
-                              {member?.name.substring(0, 2).toUpperCase() || 'U'}
+                              {member?.name?.substring(0, 2).toUpperCase() || 'U'}
                             </AvatarFallback>
                           </Avatar>
                         );
